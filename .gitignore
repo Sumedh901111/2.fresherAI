@@ -1,0 +1,13 @@
+
+# Environment files and secrets at any directory level
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated files
+**/node_modules/
+**/dist/
+**/.venv/
+**/__pycache__/
+*.py[cod]
+*.log
