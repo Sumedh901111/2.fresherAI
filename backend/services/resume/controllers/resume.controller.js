@@ -1,23 +1,20 @@
 
-
-// pdf  ---->  pdf Storage  ---> text ---> llm ---> agent ---> promt ---> data ---> save mongoDb ---> redis -->pdf delete ---> resume data ( score , missing skills , recommen.)
-
 import redis from "../../../shared/redis/redis.js";
 import { resumeAgent } from "../agents/resume.agent.js";
 import extractText from "../config/pdf.js";
 import Resume from "../models/resume.model.js";
-import fs from "fs"
+import fs from "node:fs/promises";
 
-
-
+// Upload and analyze resume
 export const uploadResume = async (req, res) => {
-    const file = req.file; // Declare outside try so catch can access it
+    const file = req.file;
 
     try {
+        // 1. Validate uploaded PDF
         if (!file) {
             return res.status(400).json({
                 success: false,
-                message: "Resume PDF is required"
+                message: "Resume PDF is required",
             });
         }
 
@@ -26,36 +23,53 @@ export const uploadResume = async (req, res) => {
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "UserId is required"
+                message: "UserId is required",
             });
         }
 
-        // 1. Extract text from uploaded PDF
+        // 2. Extract text from PDF
         const resumeText = await extractText(file.path);
 
         if (!resumeText || !resumeText.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Could not extract text from the PDF"
+                message: "Could not extract text from the PDF",
             });
         }
 
-        // 2. Analyze resume using AI agent
+        // 3. Analyze resume using AI agent
         const aiResponse = await resumeAgent(resumeText);
 
-        // 3. Parse AI response
-        const resumeData =
-            typeof aiResponse === "string"
-                ? JSON.parse(aiResponse)
-                : aiResponse;
+        // 4. Parse AI response
+        let resumeData;
 
-        // 4. Save resume in MongoDB
+        if (typeof aiResponse === "string") {
+            // Handle JSON optionally wrapped in a Markdown code block
+            const cleanedResponse = aiResponse
+                .replace(/^```(?:json)?\s*/i, "")
+                .replace(/\s*```$/, "")
+                .trim();
+
+            resumeData = JSON.parse(cleanedResponse);
+        } else {
+            resumeData = aiResponse;
+        }
+
+        if (
+            !resumeData ||
+            typeof resumeData !== "object" ||
+            Array.isArray(resumeData)
+        ) {
+            throw new Error("AI agent returned invalid resume data");
+        }
+
+        // 5. Save or update resume in MongoDB
         let resume = await Resume.findOne({ userId });
 
         if (resume) {
             Object.assign(resume, {
                 ...resumeData,
-                extractedText: resumeText
+                extractedText: resumeText,
             });
 
             await resume.save();
@@ -63,48 +77,95 @@ export const uploadResume = async (req, res) => {
             resume = await Resume.create({
                 userId,
                 extractedText: resumeText,
-                ...resumeData
+                ...resumeData,
             });
         }
 
-        // 5. Cache resume in Redis
+        // 6. Cache the saved resume in Redis
         await redis.set(
             `resume:${userId}`,
-            JSON.stringify(resume)
+            JSON.stringify(resume.toObject())
         );
 
-        // 6. Delete temporary PDF after successful processing
-        await fs.promises.unlink(file.path).catch((err) => {
-            if (err.code !== "ENOENT") {
-                console.error("PDF cleanup failed:", err.message);
-            }
-        });
-
-        // 7. Return analyzed resume
         return res.status(200).json({
             success: true,
             message: "Resume analyzed successfully",
-            data: resume
+            data: resume,
         });
-
     } catch (error) {
         console.error("Resume upload error:", error);
 
-        // Clean up temporary PDF if processing fails
+        return res.status(500).json({
+            success: false,
+            message: "Resume analysis failed",
+        });
+    } finally {
+        // 7. Delete temporary PDF after processing, whether successful or not
         if (file?.path) {
-            await fs.promises.unlink(file.path).catch((cleanupError) => {
+            try {
+                await fs.unlink(file.path);
+            } catch (cleanupError) {
                 if (cleanupError.code !== "ENOENT") {
                     console.error(
                         "PDF cleanup failed:",
                         cleanupError.message
                     );
                 }
+            }
+        }
+    }
+};
+
+// Get the current user's analyzed resume
+export const getResume = async (req, res) => {
+    try {
+        const userId = req.headers["x-user-id"];
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "UserId is required",
             });
         }
 
+        // 1. Try Redis cache first
+        const cachedResume = await redis.get(`resume:${userId}`);
+
+        if (cachedResume) {
+            return res.status(200).json({
+                success: true,
+                message: "Resume retrieved successfully",
+                data: JSON.parse(cachedResume),
+            });
+        }
+
+        // 2. If not cached, fetch from MongoDB
+        const resume = await Resume.findOne({ userId });
+
+        if (!resume) {
+            return res.status(404).json({
+                success: false,
+                message: "Resume not found",
+            });
+        }
+
+        // 3. Populate Redis cache
+        await redis.set(
+            `resume:${userId}`,
+            JSON.stringify(resume.toObject())
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Resume retrieved successfully",
+            data: resume,
+        });
+    } catch (error) {
+        console.error("Get resume error:", error);
+
         return res.status(500).json({
             success: false,
-            message: error.message || "Resume analysis failed"
+            message: "Failed to retrieve resume",
         });
     }
 };

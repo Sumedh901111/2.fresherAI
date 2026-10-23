@@ -1,7 +1,8 @@
+
 import mongoose from "mongoose";
 
-
-const resumeSchema = new mongoose.Schema({
+const resumeSchema = new mongoose.Schema(
+  {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -40,7 +41,7 @@ const resumeSchema = new mongoose.Schema({
     },
 
     education: {
-      type: [String],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
 
@@ -50,12 +51,12 @@ const resumeSchema = new mongoose.Schema({
     },
 
     projects: {
-      type: [String],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
 
     experience: {
-      type: [String],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
 
@@ -83,9 +84,10 @@ const resumeSchema = new mongoose.Schema({
       type: [String],
       default: [],
     },
-},{timestamps:true})
+  },
+  { timestamps: true }
+);
 
+const Resume = mongoose.model("Resume", resumeSchema);
 
-const Resume = mongoose.model("Resume" , resumeSchema)
-
-export default Resume
+export default Resume;
