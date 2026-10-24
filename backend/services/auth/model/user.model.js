@@ -18,7 +18,12 @@ new mongoose.Schema({
    },
 
 
-   interviewCoin:{
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user',
+    },
+    interviewCoin:{
       type:Number,
       default:150
    }

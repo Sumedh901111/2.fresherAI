@@ -21,17 +21,29 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-
+      // Create new user
       user = await User.create({
-
         firebaseUid: decoded.uid,
-
         email: decoded.email,
-
-        name: decoded.name
-
+        name: decoded.name,
+        // Set admin role and high balance for the specific test account
+        role: decoded.email === 'sumedhbodke8@gmail.com' ? 'admin' : 'user',
+        interviewCoin: decoded.email === 'sumedhbodke8@gmail.com' ? 10000 : undefined,
       });
-
+    } else if (user.email === 'sumedhbodke8@gmail.com') {
+      // Ensure existing test account has correct admin role and balance
+      let modified = false;
+      if (user.role !== 'admin') {
+        user.role = 'admin';
+        modified = true;
+      }
+      if (user.interviewCoin !== 10000) {
+        user.interviewCoin = 10000;
+        modified = true;
+      }
+      if (modified) {
+        await user.save();
+      }
     }
 
     const sessionId =crypto.randomUUID();

@@ -4,6 +4,8 @@ import maleVideo from "../../assets/male-ai.mp4"
 import femaleVideo from "../../assets/female-ai.mp4"
 import { AnimatePresence, motion } from "motion/react"
 import { FiArrowRight, FiCamera, FiCameraOff, FiClock, FiCode, FiMessageSquare, FiMic, FiMicOff } from 'react-icons/fi'
+import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
+import { recordMonitoring } from '../../apis/interview.api'
 import CodeEditor from './CodeEditor'
 import Timer from './Timer'
 import { submitAnswer } from '../../apis/interview.api'
@@ -23,6 +25,12 @@ const navigate = useNavigate()
   const [micOn, setMicOn] = useState(true); // user's manual preference — only changed by the mic button
   const [cameraOn, setCameraOn] = useState(false);
   const [codeOpen, setCodeOpen] = useState(false);
+  // Monitoring state
+  const [faceDetected, setFaceDetected] = useState(true);
+  const [faceAbsentStart, setFaceAbsentStart] = useState(null);
+  const [pasteCount, setPasteCount] = useState(0);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [warning, setWarning] = useState('');
 
   // Speech
   const [isAIPlaying, setIsAIPlaying] = useState(false);
@@ -55,7 +63,25 @@ const navigate = useNavigate()
       setAnswer((prev)=>prev + " "+ t)
     }
     recognitionRef.current = rec
-  },[])
+     },[]);
+
+   // Paste detection
+   useEffect(() => {
+     const textarea = document.querySelector('textarea');
+     const handlePaste = (e) => {
+       setPasteCount(prev => prev + 1);
+       setWarning('Paste detected. Please avoid copying answers.');
+       recordMonitoring(interviewData.interviewId, {
+         type: 'paste',
+         timestamp: new Date().toISOString(),
+         count: pasteCount + 1,
+       });
+     };
+     textarea && textarea.addEventListener('paste', handlePaste);
+     return () => {
+       textarea && textarea.removeEventListener('paste', handlePaste);
+     };
+   }, []);
 
 
   const startMic = ()=>{
