@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { motion } from "motion/react"
 import { FiArrowLeft, FiArrowRight, FiBriefcase, FiCheck, FiCheckCircle, FiFileText, FiUploadCloud } from 'react-icons/fi'
@@ -8,6 +9,7 @@ import { useCoins } from '../../apis/user.api'
 import api from '../../utils/axios'
 import { setResume } from '../../redux/resumeSlice'
 import { startInterview } from '../../apis/interview.api'
+
 function Step1setup({ user, setUser }) {
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -22,22 +24,23 @@ function Step1setup({ user, setUser }) {
     const uploadResume = async () => {
         if (!file) {
             alert("Please select a PDF")
+            return;
         }
+
         try {
             setUploading(true)
-            try {
-                
-            const coinResponse = await useCoins({ coins: 10, action: "resume-scorer" })
 
-            setUser((prev) => ({
-                ...prev, interviewCoin: coinResponse?.interviewCoin,
-            }))
+            try {
+                const coinResponse = await useCoins({ coins: 10, action: "resume-scorer" })
+
+                setUser((prev) => ({
+                    ...prev, interviewCoin: coinResponse?.interviewCoin,
+                }))
             } catch (error) {
                 setUploading(false)
                 alert("Failed to use coins.")
                 return;
             }
-
 
             const formData = new FormData()
             formData.append("resume", file)
@@ -55,29 +58,62 @@ function Step1setup({ user, setUser }) {
     }
 
     const start = async () => {
-        setStarting(true)
-        const response = await startInterview({ role, type, useResume, resume })
+        if (!role.trim() || starting) return;
 
-        if(response){
-            try {
-                
-            const coinResponse = await useCoins({ coins: 50, action: "start-interview" })
+        if (useResume && !resume) {
+            alert("Please upload your resume first, or turn off Use Resume.");
+            return;
+        }
 
-            setUser((prev) => ({
-                ...prev, interviewCoin: coinResponse?.interviewCoin,
-            }))
-            } catch (error) {
-                setStarting(false)
-                alert("Failed to use coins.")
+        setStarting(true);
+
+        try {
+            const response = await startInterview({
+                role: role.trim(),
+                type,
+                useResume,
+                resume: useResume ? resume : null,
+            });
+
+            if (!response) {
+                alert("Interview could not be started. Check the interview service terminal for the actual error.");
                 return;
             }
 
+            const interviewId =
+                response.interviewId ??
+                response.data?.interviewId ??
+                response.data?._id ??
+                response._id;
 
+            if (!interviewId) {
+                console.error("Unexpected start-interview response:", response);
+                alert("The server responded, but no interview ID was returned.");
+                return;
+            }
+
+            try {
+                const coinResponse = await useCoins({
+                    coins: 50,
+                    action: "start-interview",
+                });
+
+                setUser((prev) => ({
+                    ...prev,
+                    interviewCoin: coinResponse?.interviewCoin,
+                }));
+            } catch (error) {
+                console.error("Failed to update interview coins:", error);
+                alert("The interview was created, but updating coins failed.");
+            }
+
+            navigate(`/interview/${interviewId}`);
+        } catch (error) {
+            console.error("Start interview failed:", error);
+            alert("Failed to start the interview. Check the interview service terminal.");
+        } finally {
+            setStarting(false);
         }
-
-        setStarting(false)
-        navigate(`/interview/${response.interviewId}`)
-
     }
 
     return (
@@ -154,7 +190,6 @@ function Step1setup({ user, setUser }) {
                         </div>
 
                         {/* type */}
-
                         <div>
                             <label className='text-xs font-medium text-zinc-400'>Interview Type</label>
                             <div className='mt-1.5 flex rounded-xl bg-[#17181E] p-1 border border-white/10'>
@@ -173,7 +208,6 @@ function Step1setup({ user, setUser }) {
                         </div>
 
                         {/* resume toggle */}
-
                         <div className='rounded-xl border border-white/10 bg-[#17181E] p-4'>
                             <div className='flex items-center justify-between '>
                                 <div>
@@ -186,11 +220,9 @@ function Step1setup({ user, setUser }) {
                                     <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-black transition-all ${useResume ? "left-5.5" : "left-0.5"}`} />
                                 </button>
 
-
                             </div>
 
                         </div>
-
 
                         {resume && useResume && (
                             <motion.div
@@ -250,8 +282,6 @@ function Step1setup({ user, setUser }) {
                                                 {uploading ? "Uploading..." : "Upload"}
                                             </button>
 
-
-
                                         </div>
                                     )}
 
@@ -261,7 +291,7 @@ function Step1setup({ user, setUser }) {
                     </div>
 
                     <motion.button
-                    onClick={start}
+                        onClick={start}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                         disabled={!role || starting || (useResume && !resume)}
@@ -274,9 +304,7 @@ function Step1setup({ user, setUser }) {
 
                 </div>
 
-
             </motion.div>
-
 
         </div>
     )

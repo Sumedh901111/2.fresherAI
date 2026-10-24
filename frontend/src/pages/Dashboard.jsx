@@ -33,20 +33,58 @@ function Dashboard({ user, setUser }) {
 
   const navigate = useNavigate()
 
+
   useEffect(() => {
+    let isMounted = true;
 
     const fetchInterviews = async () => {
-      const response = await getAllInterviews()
-      setStats(response.stats)
-      setTechnicalData(response.technicalData)
-      setHrData(response.hrData)
-      setTechnicalCount(response.technicalCount)
-      setHrCount(response.hrCount)
-    }
+      try {
+        const response = await getAllInterviews();
 
-    fetchInterviews()
+        if (!isMounted || !response) {
+          console.error("Unable to load interviews. Check the backend logs.");
+          return;
+        }
 
-  }, [])
+        setStats(response.stats ?? {
+          totalInterviews: 0,
+          totalQuestions: 0,
+          completed: 0,
+          averageScore: 0,
+        });
+
+        setTechnicalData(response.technicalData ?? []);
+        setHrData(response.hrData ?? []);
+        setTechnicalCount(response.technicalCount ?? 0);
+        setHrCount(response.hrCount ?? 0);
+      } catch (error) {
+        console.error(
+          "Failed to fetch interviews:",
+          error.response?.data || error.message
+        );
+
+        if (isMounted) {
+          setStats({
+            totalInterviews: 0,
+            totalQuestions: 0,
+            completed: 0,
+            averageScore: 0,
+          });
+          setTechnicalData([]);
+          setHrData([]);
+          setTechnicalCount(0);
+          setHrCount(0);
+        }
+      }
+    };
+
+    fetchInterviews();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
 
   const handleLogout = async () => {
     try {
@@ -176,8 +214,8 @@ function Dashboard({ user, setUser }) {
 
         </div>
 
-        <motion.div  
-        initial={{ opacity: 0 }}
+        <motion.div
+          initial={{ opacity: 0 }}
 
           animate={{ opacity: 1 }}
 
@@ -185,22 +223,22 @@ function Dashboard({ user, setUser }) {
 
           className="mb-3 md:mb-4">
 
-            <p className='text-black/40 text-[10px] font-semibold uppercase tracking-widest mt-2.5 mb-1'>
+          <p className='text-black/40 text-[10px] font-semibold uppercase tracking-widest mt-2.5 mb-1'>
             Performance</p>
 
-            <h3 className='text-[#0A0A0A] font-bold text-sm md:text-base mb-3 md:mb-4'>Interview History</h3>
+          <h3 className='text-[#0A0A0A] font-bold text-sm md:text-base mb-3 md:mb-4'>Interview History</h3>
 
         </motion.div>
 
-        
 
-          <InterviewGraph
+
+        <InterviewGraph
           technicalData={technicalData}
           technicalCount={technicalCount}
           hrData={hrData}
           hrCount={hrCount}
-          />
-        
+        />
+
 
       </motion.main>
 
