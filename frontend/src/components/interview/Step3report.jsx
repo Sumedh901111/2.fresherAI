@@ -87,6 +87,37 @@ function Step3report({ report, user, setUser }) {
 
           </div>
 
+          {(report.monitoringSummary || report.monitoringEvents?.length > 0) && (
+            <div className='mt-6 rounded-2xl bg-[#17181E] border border-white/10 p-6'>
+              <h3 className="text-lg font-semibold text-white">
+                Session monitoring
+              </h3>
+              <div className="mt-4 grid sm:grid-cols-3 gap-3">
+                <div className="rounded-xl bg-black/20 p-3.5">
+                  <p className="text-xs text-zinc-500">Tab switches</p>
+                  <h5 className="mt-2 text-xl font-bold text-white">
+                    {report.monitoringSummary?.tabSwitchCount ?? 0}
+                  </h5>
+                </div>
+                <div className="rounded-xl bg-black/20 p-3.5">
+                  <p className="text-xs text-zinc-500">Paste attempts</p>
+                  <h5 className="mt-2 text-xl font-bold text-white">
+                    {report.monitoringSummary?.pasteCount ?? 0}
+                  </h5>
+                </div>
+                <div className="rounded-xl bg-black/20 p-3.5">
+                  <p className="text-xs text-zinc-500">Face out of frame</p>
+                  <h5 className="mt-2 text-xl font-bold text-white">
+                    {report.monitoringSummary?.faceAbsentCount ?? 0}
+                  </h5>
+                </div>
+              </div>
+              <p className="mt-4 text-xs leading-6 text-zinc-500">
+                Counts come from this browser session only (tab visibility, paste attempts, and camera presence). They do not prove cheating, honesty, or emotional state, and they cannot detect every way a candidate might look up answers.
+              </p>
+            </div>
+          )}
+
           <div className='mt-6 rounded-2xl bg-[#17181E] border border-white/10 p-6'>
             <h3 className="text-lg font-semibold text-white">
               Interview Summary

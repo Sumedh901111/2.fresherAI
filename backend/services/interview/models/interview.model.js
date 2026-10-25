@@ -91,6 +91,35 @@ const questionSchema = new mongoose.Schema(
     { _id: false }
 );
 
+const monitoringEventSchema = new mongoose.Schema(
+    {
+        type: {
+            type: String,
+            enum: [
+                "paste",
+                "tab_switch",
+                "face_absent",
+                "face_returned",
+                "head_turned",
+                "camera_denied",
+                "camera_unavailable",
+                "camera_error",
+                "window_blur",
+            ],
+            required: true,
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now,
+        },
+        metadata: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {},
+        },
+    },
+    { _id: false }
+);
+
 const interviewSchema = new mongoose.Schema(
     {
         userId: {
@@ -147,6 +176,19 @@ const interviewSchema = new mongoose.Schema(
         summary: {
             type: String,
             default: "",
+        },
+
+        monitoringEvents: {
+            type: [monitoringEventSchema],
+            default: [],
+        },
+
+        monitoringSummary: {
+            pasteCount: { type: Number, default: 0 },
+            tabSwitchCount: { type: Number, default: 0 },
+            faceAbsentCount: { type: Number, default: 0 },
+            headTurnedCount: { type: Number, default: 0 },
+            cameraDeniedCount: { type: Number, default: 0 },
         },
 
         status: {

@@ -2,6 +2,7 @@
 import redis from "../../../shared/redis/redis.js";
 import graph from "../graph/graph.js";
 import Interview from "../models/interview.model.js";
+import { sanitizeMonitoringPayload } from "../utils/monitoring.js";
 
 export const startInterview = async (req, res) => {
     try {
@@ -53,6 +54,14 @@ export const startInterview = async (req, res) => {
             questions,
             currentQuestion: 0,
             status: "in-progress",
+            monitoringEvents: [],
+            monitoringSummary: {
+                pasteCount: 0,
+                tabSwitchCount: 0,
+                faceAbsentCount: 0,
+                headTurnedCount: 0,
+                cameraDeniedCount: 0,
+            },
         });
 
         await redis.del(`interviews:${userId}`);
@@ -172,6 +181,91 @@ export const submitAnswer = async (req, res) => {
         });
     } catch (error) {
         console.error("Submit Answer Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const recordMonitoring = async (req, res) => {
+    try {
+        const userId = req.headers["x-user-id"];
+        const { interviewId, type, metadata } = req.body || {};
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User ID is missing",
+            });
+        }
+
+        const payload = sanitizeMonitoringPayload({
+            interviewId,
+            type,
+            metadata,
+        });
+
+        if (!payload.ok) {
+            return res.status(payload.status).json({
+                success: false,
+                message: payload.message,
+            });
+        }
+
+        const interview = await Interview.findOne({
+            _id: payload.interviewId,
+            userId,
+        });
+
+        if (!interview) {
+            return res.status(404).json({
+                success: false,
+                message: "Interview not found",
+            });
+        }
+
+        if (interview.status === "completed") {
+            return res.status(400).json({
+                success: false,
+                message: "Interview already completed",
+            });
+        }
+
+        if (!interview.monitoringSummary) {
+            interview.monitoringSummary = {
+                pasteCount: 0,
+                tabSwitchCount: 0,
+                faceAbsentCount: 0,
+                headTurnedCount: 0,
+                cameraDeniedCount: 0,
+            };
+        }
+
+        if (interview.monitoringEvents.length < payload.maxEvents) {
+            interview.monitoringEvents.push({
+                type: payload.type,
+                timestamp: new Date(),
+                metadata: payload.metadata,
+            });
+        }
+
+        if (payload.countField) {
+            interview.monitoringSummary[payload.countField] =
+                (interview.monitoringSummary[payload.countField] || 0) + 1;
+        }
+
+        interview.markModified("monitoringSummary");
+        await interview.save();
+        await redis.del(`interviews:${userId}`);
+
+        return res.status(200).json({
+            success: true,
+            monitoringSummary: interview.monitoringSummary,
+        });
+    } catch (error) {
+        console.error("Record Monitoring Error:", error);
 
         return res.status(500).json({
             success: false,

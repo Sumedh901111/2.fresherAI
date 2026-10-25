@@ -4,11 +4,10 @@ import maleVideo from "../../assets/male-ai.mp4"
 import femaleVideo from "../../assets/female-ai.mp4"
 import { AnimatePresence, motion } from "motion/react"
 import { FiArrowRight, FiCamera, FiCameraOff, FiClock, FiCode, FiMessageSquare, FiMic, FiMicOff } from 'react-icons/fi'
-import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
-import { recordMonitoring } from '../../apis/interview.api'
 import CodeEditor from './CodeEditor'
 import Timer from './Timer'
 import { submitAnswer } from '../../apis/interview.api'
+import { useInterviewMonitoring } from '../../hooks/useInterviewMonitoring'
 import { useNavigate } from 'react-router-dom'
 function Step2interview({ interviewData, user }) {
 const navigate = useNavigate()
@@ -23,14 +22,7 @@ const navigate = useNavigate()
 
   // UI toggles
   const [micOn, setMicOn] = useState(true); // user's manual preference — only changed by the mic button
-  const [cameraOn, setCameraOn] = useState(false);
   const [codeOpen, setCodeOpen] = useState(false);
-  // Monitoring state
-  const [faceDetected, setFaceDetected] = useState(true);
-  const [faceAbsentStart, setFaceAbsentStart] = useState(null);
-  const [pasteCount, setPasteCount] = useState(0);
-  const [tabSwitchCount, setTabSwitchCount] = useState(0);
-  const [warning, setWarning] = useState('');
 
   // Speech
   const [isAIPlaying, setIsAIPlaying] = useState(false);
@@ -43,7 +35,22 @@ const navigate = useNavigate()
   const aiVideoRef = useRef(null);
   const userVideoRef = useRef(null);
   const recognitionRef = useRef(null);
-  const streamRef = useRef(null);
+  const {
+    cameraOn,
+    cameraStatus,
+    cameraMessage,
+    faceDetected,
+    headDirection,
+    warning,
+    pasteCount,
+    tabSwitchCount,
+    toggleCamera,
+    stopMonitoring,
+    handleAnswerPaste,
+  } = useInterviewMonitoring({
+    interviewId: interviewData.interviewId,
+    userVideoRef,
+  });
 
 
   const videoSource = voiceGender === "female" ? femaleVideo : maleVideo
@@ -65,25 +72,6 @@ const navigate = useNavigate()
     recognitionRef.current = rec
      },[]);
 
-   // Paste detection
-   useEffect(() => {
-     const textarea = document.querySelector('textarea');
-     const handlePaste = (e) => {
-       setPasteCount(prev => prev + 1);
-       setWarning('Paste detected. Please avoid copying answers.');
-       recordMonitoring(interviewData.interviewId, {
-         type: 'paste',
-         timestamp: new Date().toISOString(),
-         count: pasteCount + 1,
-       });
-     };
-     textarea && textarea.addEventListener('paste', handlePaste);
-     return () => {
-       textarea && textarea.removeEventListener('paste', handlePaste);
-     };
-   }, []);
-
-
   const startMic = ()=>{
     recognitionRef.current?.start()
   }
@@ -98,27 +86,6 @@ const navigate = useNavigate()
       startMic()
     }
     setMicOn(!micOn)
-  }
-
-  const toggleCamera =async ()=>{
-    if(cameraOn){
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      setCameraOn(false);
-
-    }else{
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({video:true})
-        streamRef.current = stream
-        setCameraOn(true)
-        setTimeout(()=>{
-          if(userVideoRef.current) userVideoRef.current.srcObject = stream
-
-        },100)
-      } catch (error) {
-        setCameraOn(false)
-      }
-    }
   }
 
   const handleSubmitCode= (code) => {
@@ -242,6 +209,7 @@ const navigate = useNavigate()
           "Great job! Your interview is complete. Preparing your report now."
         );
         setLoading(false);
+        stopMonitoring();
         navigate(`/interview/${interviewData.interviewId}/report`);
         return;
     }
@@ -285,6 +253,7 @@ const navigate = useNavigate()
           "Great job! Your interview is complete. Preparing your report now."
         );
         setLoading(false);
+        stopMonitoring();
         navigate(`/interview/${interviewData.interviewId}/report`);
         return;
     }
@@ -369,7 +338,7 @@ const navigate = useNavigate()
 
 
           <div className='relative rounded-xl overflow-hidden bg-[#17181E] border border-white/8 aspect-video flex items-center justify-center'>
-            {cameraOn ?
+            {cameraOn || cameraStatus === "requesting" ?
               <>
                 <video
                   ref={userVideoRef}
@@ -381,13 +350,31 @@ const navigate = useNavigate()
                 <div className='absolute top-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5'>
                 <span className="text-[10px] text-white/70">You</span>
                 </div>
+                {cameraStatus === "requesting" && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <span className="text-[10px] text-white/70">Requesting camera…</span>
+                  </div>
+                )}
+                {cameraOn && !faceDetected && (
+                  <div className="absolute bottom-2 left-2 right-2 bg-black/65 backdrop-blur-sm rounded-lg px-2 py-1">
+                    <span className="text-[10px] text-amber-300">Face not in frame</span>
+                  </div>
+                )}
+                {cameraOn && faceDetected && headDirection !== "forward" && (
+                  <div className="absolute bottom-2 left-2 right-2 bg-black/65 backdrop-blur-sm rounded-lg px-2 py-1">
+                    <span className="text-[10px] text-white/70">Please face the camera</span>
+                  </div>
+                )}
               </>
               :
-              <div className='flex flex-col items-center gap-2'>
+              <div className='flex flex-col items-center gap-2 px-3'>
                 <div className='w-14 h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center'>
                 <span className='text-2xl font-bold text-white'>{user?.name.charAt(0).toUpperCase()}</span>
                 </div>
                 <span className='text-xs text-white/35'>{user?.name.split(" ")[0]}</span>
+                {cameraMessage && (
+                  <span className="text-[10px] text-white/45 text-center">{cameraMessage}</span>
+                )}
                 </div>}     
           </div>
 
@@ -431,13 +418,21 @@ const navigate = useNavigate()
             </div>
 
             <div className='min-h-[14px] flex items-center justify-center'>
-              {micOn && isAIPlaying && (
-                <span className="text-[10px] text-red-400/80">Mic paused — AI is speaking</span>)}
+              {warning ? (
+                <span className="text-[10px] text-amber-400/85 text-center px-2">{warning}</span>
+              ) : micOn && isAIPlaying ? (
+                <span className="text-[10px] text-red-400/80">Mic paused — AI is speaking</span>
+              ) : null}
             </div>
 
             <span className="text-[10px] text-white/35 text-center">
               Coding question? Use <FiCode size={9} className="inline -mt-0.5" /> to write &amp; add code
             </span>
+            {(pasteCount > 0 || tabSwitchCount > 0) && (
+              <span className="text-[10px] text-white/35 text-center">
+                {tabSwitchCount} tab switch{tabSwitchCount === 1 ? "" : "es"} · {pasteCount} paste attempt{pasteCount === 1 ? "" : "s"}
+              </span>
+            )}
 
           </div>
 
@@ -496,6 +491,7 @@ const navigate = useNavigate()
             <label className='text-xs font-medium text-zinc-400 mb-1.5'>Your Answer</label>
             <textarea
             onChange={(e)=>setAnswer(e.target.value)}
+            onPaste={handleAnswerPaste}
             value={answer}
             rows={5}
             onKeyDown={(e)=>{if(e.ctrlKey && e.key === "Enter") submit()}}

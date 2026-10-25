@@ -45,9 +45,13 @@ export const getAllInterviews = async () => {
         return handleApiError("Get all interviews", error);
     }
 };
-export const recordMonitoring = async (data) => {
+export const recordMonitoring = async ({ interviewId, type, metadata }) => {
     try {
-        const response = await api.post("/api/interview/monitor", data);
+        const response = await api.post("/api/interview/monitor", {
+            interviewId,
+            type,
+            metadata,
+        });
         return response.data;
     } catch (error) {
         return handleApiError("Record monitoring", error);
