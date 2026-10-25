@@ -5,6 +5,8 @@ import { FcGoogle } from "react-icons/fc";
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../utils/firebase';
 import api from '../utils/axios';
+import guardianShield from '../assets/brand/guardian-shield-transparent.png';
+
 function LoginModel({ onClose ,setUser}) {
 
     const handleGoogleAuth = async () => {
@@ -25,7 +27,7 @@ function LoginModel({ onClose ,setUser}) {
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md px-4'>
             <div className='relative w-full max-w-sm
-        bg-[#0A0A0A]/80 backdrop-blur-2xl
+        bg-[#0A0A0A]/90 backdrop-blur-2xl
         border border-white/10
         rounded-2xl
         overflow-hidden
@@ -40,12 +42,18 @@ function LoginModel({ onClose ,setUser}) {
               text-white/30 hover:text-white
               transition-colors'><FiX size={16} /></button>
 
-                    <h2 className='text-lg font-bold text-center mb-2 text-white'>
+                    <div className='flex justify-center mb-3'>
+                        <div className='w-12 h-12 rounded-2xl bg-white/10 border border-white/15 p-2 flex items-center justify-center shadow-inner'>
+                            <img src={guardianShield} alt="Guardian AI" className='w-8 h-8 object-contain drop-shadow-md' />
+                        </div>
+                    </div>
+
+                    <h2 className='text-lg font-bold text-center mb-1 text-white'>
                         Sign In to {" "}
-                        <span className='font-extrabold text-lg tracking-tight text-white'>FresherAI</span>
+                        <span className='font-extrabold text-lg tracking-tight text-white'>Guardian AI</span>
                     </h2>
                     <p className='text-white/45 text-center text-xs'>
-                        Continue your AI interview journey
+                        Interview Assistant · Continue your AI interview journey
                     </p>
 
                     <div className='mt-7'>

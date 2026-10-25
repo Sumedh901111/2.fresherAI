@@ -2,6 +2,7 @@ const technicalInterviewPrompt = ({
   role,
   useResume,
   resume,
+  questionCount = 5,
 }) => `
 
 You are a Senior Technical Interviewer.
@@ -51,7 +52,7 @@ ${resume?.recommendations?.join(", ")}
 RULES
 =========================
 
-Generate EXACTLY 6 questions.
+Generate EXACTLY ${questionCount} questions.
 
 Each object must contain ONLY:
 
@@ -74,19 +75,11 @@ Never use
 
 as difficulty.
 
-Difficulty Order
-
-Q1 -> easy
-
-Q2 -> easy
-
-Q3 -> medium
-
-Q4 -> hard
-
-Q5 -> medium
-
-Q6 -> hard
+Difficulty Order:
+Progression across the ${questionCount} question(s):
+- First questions: easy conceptual and foundational role-specific questions
+- Middle questions: medium practical implementation, scenario, comparison, and debugging questions
+- Later questions: hard in-depth architecture, system design, or coding questions (for software engineering roles)
 
 =========================
 Question Rules

@@ -6,6 +6,7 @@ import { GiTwoCoins } from 'react-icons/gi'
 import PricingCard from '../components/PricingCard'
 import api from '../utils/axios'
 import { useNavigate } from 'react-router-dom'
+import guardianShield from '../assets/brand/guardian-shield-transparent.png'
 
 const plan = [
     {
@@ -51,7 +52,7 @@ function Billing({ user, setUser }) {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: result.data.order.amount,
                 currency: result.data.order.currency,
-                name: "FresherAI",
+                name: "Guardian AI",
                 description: `${plan.title} - ${plan.coins} Interview Coins`,
                 order_id: result.data.order.id,
 
@@ -104,8 +105,9 @@ function Billing({ user, setUser }) {
                 className='sticky top-0 z-20 border-b border-black/8 bg-white/80 backdrop-blur-xl'>
                 <div className='mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-5'>
                     <div onClick={() => navigate("/dashboard")}
-                        className='flex cursor-pointer items-center gap-1.5'>
-                        <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>FresherAI</span>
+                        className='flex cursor-pointer items-center gap-2'>
+                        <img src={guardianShield} alt="Guardian AI" className='w-5 h-5 object-contain' />
+                        <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>Guardian AI</span>
                         <span className='hidden rounded bg-black/5 px-1.5 py-0.5 text-[10px] text-black/50 sm:block'>Interview Coins</span>
                     </div>
 

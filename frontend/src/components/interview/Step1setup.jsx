@@ -16,6 +16,7 @@ function Step1setup({ user, setUser }) {
     const { resume } = useSelector((state) => state.resume)
     const [role, setRole] = useState("");
     const [type, setType] = useState("technical");
+    const [questionCount, setQuestionCount] = useState(5);
     const [useResume, setUseResume] = useState(!!resume)
     const [file, setFile] = useState(null)
     const [uploading, setUploading] = useState(false)
@@ -60,6 +61,12 @@ function Step1setup({ user, setUser }) {
     const start = async () => {
         if (!role.trim() || starting) return;
 
+        const count = Number(questionCount);
+        if (isNaN(count) || count < 1 || count > 15 || !Number.isInteger(count)) {
+            alert("Please choose between 1 and 15 questions.");
+            return;
+        }
+
         if (useResume && !resume) {
             alert("Please upload your resume first, or turn off Use Resume.");
             return;
@@ -73,6 +80,7 @@ function Step1setup({ user, setUser }) {
                 type,
                 useResume,
                 resume: useResume ? resume : null,
+                questionCount: count,
             });
 
             if (!response) {
@@ -204,6 +212,81 @@ function Step1setup({ user, setUser }) {
                                     ))
                                 }
 
+                            </div>
+                        </div>
+
+                        {/* question count */}
+                        <div className='rounded-xl border border-white/10 bg-[#17181E] p-4'>
+                            <div className='flex items-center justify-between mb-3'>
+                                <div>
+                                    <div className='flex items-center gap-2'>
+                                        <label className='text-sm font-medium text-white'>Number of Questions</label>
+                                        <span className='rounded-full bg-white/10 border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-zinc-300'>
+                                            {questionCount} {Number(questionCount) === 1 ? "Question" : "Questions"}
+                                        </span>
+                                    </div>
+                                    <p className='mt-0.5 text-xs text-zinc-500'>
+                                        Select interview length (1 to 15 questions)
+                                    </p>
+                                </div>
+
+                                <div className='flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-xl p-1'>
+                                    <button
+                                        type='button'
+                                        onClick={() => setQuestionCount((prev) => Math.max(1, (parseInt(prev, 10) || 1) - 1))}
+                                        disabled={Number(questionCount) <= 1}
+                                        aria-label="Decrease question count"
+                                        className='w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-sm font-bold transition disabled:opacity-30 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed'>
+                                        -
+                                    </button>
+                                    <input
+                                        type='number'
+                                        min={1}
+                                        max={15}
+                                        value={questionCount}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === "") {
+                                                setQuestionCount("");
+                                            } else {
+                                                const parsed = parseInt(val, 10);
+                                                if (!isNaN(parsed)) {
+                                                    setQuestionCount(Math.max(1, Math.min(15, parsed)));
+                                                }
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            if (!questionCount || Number(questionCount) < 1) setQuestionCount(1);
+                                            else if (Number(questionCount) > 15) setQuestionCount(15);
+                                        }}
+                                        className='w-9 text-center bg-transparent text-sm font-bold text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                                    />
+                                    <button
+                                        type='button'
+                                        onClick={() => setQuestionCount((prev) => Math.min(15, (parseInt(prev, 10) || 1) + 1))}
+                                        disabled={Number(questionCount) >= 15}
+                                        aria-label="Increase question count"
+                                        className='w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-sm font-bold transition disabled:opacity-30 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed'>
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Presets */}
+                            <div className='grid grid-cols-4 gap-2 pt-1'>
+                                {[3, 5, 10, 15].map((preset) => (
+                                    <button
+                                        key={preset}
+                                        type='button'
+                                        onClick={() => setQuestionCount(preset)}
+                                        className={`py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                                            Number(questionCount) === preset
+                                                ? "bg-white text-black border-white shadow-sm"
+                                                : "bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] border-white/5"
+                                        }`}>
+                                        {preset} Qs
+                                    </button>
+                                ))}
                             </div>
                         </div>
 

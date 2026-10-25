@@ -3,7 +3,7 @@ import { useState } from 'react'
 import maleVideo from "../../assets/male-ai.mp4"
 import femaleVideo from "../../assets/female-ai.mp4"
 import { AnimatePresence, motion } from "motion/react"
-import { FiArrowRight, FiCamera, FiCameraOff, FiClock, FiCode, FiMessageSquare, FiMic, FiMicOff } from 'react-icons/fi'
+import { FiArrowRight, FiCamera, FiCameraOff, FiClock, FiCode, FiMessageSquare, FiMic, FiMicOff, FiSkipForward } from 'react-icons/fi'
 import CodeEditor from './CodeEditor'
 import Timer from './Timer'
 import { submitAnswer } from '../../apis/interview.api'
@@ -272,6 +272,71 @@ const navigate = useNavigate()
 
   }
 
+  const skip = async () => {
+    if (loading) return;
+    setTimerActive(false);
+    setLoading(true);
+
+    const res = await submitAnswer({
+      interviewId: interviewData.interviewId,
+      answer: "Question skipped by candidate.",
+    });
+
+    if (res?.completed) {
+      setFeedback(res.feedback);
+      await new Promise((r) => setTimeout(r, 700));
+      await speakText(
+        res.feedback?.feedback ||
+        "Great job! Your interview is complete. Preparing your report now."
+      );
+      setLoading(false);
+      stopMonitoring();
+      navigate(`/interview/${interviewData.interviewId}/report`);
+      return;
+    }
+
+    setFeedback(res.feedback);
+    await new Promise((r) => setTimeout(r, 700));
+    await speakText(
+      res.feedback?.feedback ||
+      "Question skipped. Let's move to the next question."
+    );
+    setLoading(false);
+    setQuestion(res.question);
+    setCurrentIndex(res.currentQuestion);
+    setAnswer("");
+    setFeedback(null);
+  };
+
+  const endEarly = async () => {
+    if (loading) return;
+    const confirmEnd = window.confirm(
+      "Are you sure you want to end the interview early? A final report will be generated using the questions completed so far."
+    );
+    if (!confirmEnd) return;
+
+    setTimerActive(false);
+    setLoading(true);
+
+    const res = await submitAnswer({
+      interviewId: interviewData.interviewId,
+      answer: answer.trim() || "Interview ended early by candidate.",
+      finishEarly: true,
+    });
+
+    if (res?.completed) {
+      setFeedback(res.feedback);
+      await new Promise((r) => setTimeout(r, 700));
+      await speakText("Interview ended. Preparing your performance report now.");
+      setLoading(false);
+      stopMonitoring();
+      navigate(`/interview/${interviewData.interviewId}/report`);
+      return;
+    }
+
+    setLoading(false);
+  };
+
   
 
 
@@ -457,7 +522,13 @@ const navigate = useNavigate()
 
             <div className='flex flex-col items-end gap-1.5 min-w-[110px]'>
               <Timer timeLeft={timeLeft} totalTime={question.timer || 60}/>
-
+              <button
+                type='button'
+                onClick={endEarly}
+                disabled={loading}
+                className='text-[10px] text-zinc-500 hover:text-red-400 transition cursor-pointer border border-white/5 hover:border-red-500/20 px-2 py-0.5 rounded-md bg-white/[0.02] disabled:opacity-30'>
+                End Early
+              </button>
             </div>
           </div>
 
@@ -515,7 +586,7 @@ const navigate = useNavigate()
           </div>
 
 
-          <div className='flex items-center justify-between mt-4 pt-3 border-t border-white/8'>
+          <div className='flex items-center justify-between mt-4 pt-3 border-t border-white/8 gap-3'>
           <span className='text-xs text-zinc-600 hidden sm:block'>
             Press{" "}
             <span className='mx-1 rounded bg-white/10 px-1.5 py-0.5 text-white text-[10px]'>
@@ -523,15 +594,23 @@ const navigate = useNavigate()
             </span>to Submit
           </span>
 
-          <motion.button 
-          whileHover={{ scale: 1.02 }}
+          <div className='flex items-center gap-2 ml-auto'>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={skip}
+              disabled={loading}
+              className='h-10 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition cursor-pointer'>
+              <FiSkipForward size={13} />
+              <span>Skip</span>
+            </motion.button>
+
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={submit}
               disabled={loading || !answer.trim()}
-              className='ml-auto h-10 min-w-[150px] justify-center px-5 rounded-xl bg-white text-black text-sm font-semibold flex items-center gap-2 disabled:opacity-40 transition'
-
-              
-              >
+              className='h-10 min-w-[140px] justify-center px-5 rounded-xl bg-white text-black text-sm font-semibold flex items-center gap-2 disabled:opacity-40 transition cursor-pointer'>
                  {loading ? (
                 <>
                   <div className="w-3.5 h-3.5 rounded-full border-2 border-black border-t-transparent animate-spin" />
@@ -541,7 +620,8 @@ const navigate = useNavigate()
                 <>Submit Answer <FiArrowRight size={15} /></>
               )}
 
-          </motion.button>
+            </motion.button>
+          </div>
           
           </div>
 

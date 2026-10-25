@@ -5,6 +5,7 @@ import { motion } from "motion/react"
 import { FiArrowLeft, FiArrowRight, FiEye } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import PreviewResume from '../components/resume/PreviewResume';
+import guardianShield from '../assets/brand/guardian-shield-transparent.png';
 const STEPS = [
   { step: 1, title: "Personal Information", subtitle: "Your basic contact details" },
   { step: 2, title: "Professional Summary", subtitle: "A quick intro about yourself" },
@@ -50,8 +51,9 @@ function ResumeBuilder({user , setUser}) {
         className='sticky top-0 z-20 border-b border-black/8 bg-white/80 backdrop-blur-xl'>
             <div className='mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-5'>
                 <div onClick={()=>navigate("/dashboard")}
-                 className='flex cursor-pointer items-center gap-1.5'>
-                    <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>FresherAI</span>
+                 className='flex cursor-pointer items-center gap-2'>
+                    <img src={guardianShield} alt="Guardian AI" className='w-5 h-5 object-contain' />
+                    <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>Guardian AI</span>
                     <span className='hidden rounded bg-black/5 px-1.5 py-0.5 text-[10px] text-black/50 sm:block'>Resume Builder</span>
                 </div>
 

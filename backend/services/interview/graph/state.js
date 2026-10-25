@@ -12,6 +12,8 @@ const InterviewState = Annotation.Root({
 
     resume: Annotation(),
 
+    questionCount: Annotation(),
+
     questions: Annotation(),
 
     question: Annotation(),

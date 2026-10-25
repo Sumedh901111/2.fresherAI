@@ -17,7 +17,15 @@ export const interviewAgent = async (data) => {
             .replace(/```/g, "")
             .trim();
 
-        return JSON.parse(cleaned);
+        const parsed = JSON.parse(cleaned);
+        const questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+
+        const targetCount = Number(data.questionCount);
+        if (targetCount && targetCount > 0 && questions.length > targetCount) {
+            return questions.slice(0, targetCount);
+        }
+
+        return questions;
     } catch (error) {
         console.error("Interview Agent Error:", error.message);
         throw new Error(

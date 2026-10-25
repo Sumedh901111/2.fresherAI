@@ -1,10 +1,11 @@
 import React from 'react'
 import { motion } from "motion/react"
-import { GiArtificialHive } from "react-icons/gi";
 import { FaArrowRight } from "react-icons/fa6";
 import LoginModel from '../components/LoginModel';
 import { useState } from 'react';
-import dashboard from "../assets/image.png"
+import guardianShield from "../assets/brand/guardian-shield-transparent.png"
+import guardianWordmark from "../assets/brand/guardian-wordmark-transparent.png"
+import robotIllustration from "../assets/brand/guardian-interview-robot.png"
 import { FiMic, FiFileText, FiBarChart2, FiMap } from "react-icons/fi";
 function Home({ setUser }) {
     const [showLogin, setShowLogin] = useState(false)
@@ -19,12 +20,12 @@ function Home({ setUser }) {
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className='fixed top-0 left-0 right-0 z-50 h-[52px] flex items-center justify-between px-5 bg-white/70 backdrop-blur-xl border-b border-black/5'>
 
-                <div className='flex items-center gap-2'>
-
-                    <div className='w-7 h-7 rounded-lg bg-[#0A0A0A] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.18)]'>
-                        <GiArtificialHive size={15} color='white' /></div>
-
-                    <span className='font-extrabold text-base tracking-tight text-[#0A0A0A]'>FresherAI</span>
+                <div className='flex items-center gap-2.5'>
+                    <img src={guardianShield} alt="Guardian AI Logo" className='w-7 h-7 object-contain drop-shadow-sm' />
+                    <div className='flex flex-col'>
+                        <span className='font-extrabold text-base tracking-tight text-[#0A0A0A] leading-none'>Guardian AI</span>
+                        <span className='text-[9px] uppercase tracking-wider font-semibold text-black/45 mt-0.5'>Interview Assistant</span>
+                    </div>
                 </div>
 
                 <motion.button
@@ -68,9 +69,8 @@ function Home({ setUser }) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.55, delay: 0.2 }}
-                        className='text-black/45 text-sm leading-relaxed max-w-md mx-auto mb-6 [text-shadow:0_2px_10px_rgba(0,0,0,0.06)]'>
-                        Fresher.AI is an innovative AI-powered interview preparation platform
-                        designed to help job seekers excel in their interviews.
+                        className='text-black/50 text-sm md:text-base leading-relaxed max-w-lg mx-auto mb-6 [text-shadow:0_2px_10px_rgba(0,0,0,0.06)]'>
+                        Guardian AI is an AI-powered interview preparation platform that helps candidates practise interviews, improve their answers, analyse performance, and prepare for their careers.
                     </motion.p>
 
                     <motion.div
@@ -82,7 +82,7 @@ function Home({ setUser }) {
                             onClick={() => setShowLogin(true)}
                             whileHover={{ scale: 1.05, boxShadow: "0 0 36px rgba(0,0,0,0.18)" }}
                             whileTap={{ scale: 0.97 }}
-                            className='relative  gap-2 overflow-hidden bg-[#0A0A0A]/80 backdrop-blur-2xl text-white font-bold px-5 py-2.5 rounded-lg text-xs cursor-pointer border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:border-white/20'>
+                            className='relative gap-2 overflow-hidden bg-[#0A0A0A]/80 backdrop-blur-2xl text-white font-bold px-5 py-2.5 rounded-lg text-xs cursor-pointer border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:border-white/20'>
                             <span className='flex items-center justify-center gap-2'> Get Started For Free <FaArrowRight /></span>
                             <span className='absolute inset-0 bg-gradient-to-br from-white/[0.1] via-transparent to-transparent pointer-events-none rounded-lg' />
                         </motion.button>
@@ -92,11 +92,15 @@ function Home({ setUser }) {
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ y: -10, scale: 1.02 }}
+                    whileHover={{ y: -6, scale: 1.01 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
-                    className='mt-10 rounded-lg overflow-hidden  shadow-[0_0_60px_rgba(0,0,0,0.06)] max-w-2xl mx-auto'>
+                    className='mt-10 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.14)] border border-black/10 max-w-4xl mx-auto bg-[#18191E]'>
 
-                    <img src={dashboard} alt='dashboard img' className='w-full h-auto object-cover block ' />
+                    <img
+                        src={robotIllustration}
+                        alt='Guardian AI robot helping candidates practise interviews'
+                        className='w-full h-auto object-contain block'
+                    />
 
                 </motion.div>
 
@@ -118,7 +122,7 @@ function Home({ setUser }) {
                         </h2>
 
                         <p className='text-black/40 text-sm max-w-2xl mx-auto mt-4 leading-relaxed'>
-                            Fresher.AI combines multiple AI agents that work together
+                            Guardian AI combines multiple AI agents that work together
                             to help you build your resume, practice interviews,
                             receive detailed feedback, and follow a personalized roadmap
                             to land your dream job.
@@ -177,19 +181,18 @@ function Home({ setUser }) {
 
             {showLogin && <LoginModel onClose={() => setShowLogin(false)} setUser={setUser} />}
 
-                <footer className='border-t border-black/7 py-6 text-center bg-white'>
-                <div className='flex items-center justify-center gap-2 mb-1.5'>
-                    <div className='w-5 h-5 rounded-md bg-[#0A0A0A] flex items-center justify-center'>
-                        <GiArtificialHive size={11} color='white'/>
-
-                    </div>
-                    <span className='font-bold text-xs text-[#0A0A0A]/70'>FresherAI</span>
+            <footer className='border-t border-black/8 py-8 text-center bg-white'>
+                <div className='flex items-center justify-center mb-3'>
+                    <img
+                        src={guardianWordmark}
+                        alt="Guardian AI – Interview Assistant"
+                        className='h-9 w-auto object-contain max-w-[240px]'
+                    />
                 </div>
                 <div className='text-black/50 text-xs'>
-                © {new Date().getFullYear()} Fresher.AI · All rights reserved
+                    © {new Date().getFullYear()} Guardian AI · Interview Assistant. All rights reserved.
                 </div>
-
-                </footer>
+            </footer>
 
 
         </div>

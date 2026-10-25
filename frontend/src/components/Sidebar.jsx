@@ -1,9 +1,10 @@
 import React from 'react'
 import { AnimatePresence, motion } from "motion/react"
-import { GiArtificialHive, GiTwoCoins } from 'react-icons/gi'
+import { GiTwoCoins } from 'react-icons/gi'
 import { FiFileText, FiLogOut, FiMap, FiPlus, FiSidebar, FiStar } from 'react-icons/fi'
 import { useNavigate } from "react-router-dom"
 import { FaCirclePlus } from "react-icons/fa6";
+import guardianShield from "../assets/brand/guardian-shield-transparent.png";
 
 const NAV_ITEMS = [
     {
@@ -40,18 +41,27 @@ function Sidebar({
 
     const inner = (
         <div className='flex flex-col h-full'>
-            <div className={`px-3 h-[52px] border-b border-black/8 shrink-0 flex items-center ${sidebarOpen ? "justify-between" : "justify-center"
+            <div className={`px-3 h-[52px] border-b border-black/8 shrink-0 flex items-center ${sidebarOpen ? "justify-between" : "justify-between"
                 }`}>
-                {sidebarOpen && (
+                {sidebarOpen ? (
                     <div className='flex items-center gap-2.5'>
-                        <div className='w-7 h-7 rounded-lg bg-[#000000] flex items-center justify-center shrink-0 shadow-[0_4px_14px_rgba(0,0,0,0.25)]'><GiArtificialHive size={19} color='white' /></div>
-                        <motion.span
+                        <img src={guardianShield} alt="Guardian AI" className='w-7 h-7 object-contain drop-shadow-sm' />
+                        <motion.div
                             initial={{ opacity: 0, x: -6 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.15 }}
-                            className='font-extrabold text-sm tracking-tight text-[#0A0A0A] whitespace-nowrap'>FresherAI</motion.span>
+                            className='flex flex-col'>
+                            <span className='font-extrabold text-sm tracking-tight text-[#0A0A0A] leading-tight'>Guardian AI</span>
+                            <span className='text-[8px] uppercase tracking-wider font-semibold text-black/40'>Interview Assistant</span>
+                        </motion.div>
 
                     </div>
+                ) : (
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className='w-7 h-7 flex items-center justify-center shrink-0'>
+                        <img src={guardianShield} alt="Guardian AI" className='w-6 h-6 object-contain' />
+                    </motion.div>
                 )}
                 <div className='flex items-center '>
                     <motion.button

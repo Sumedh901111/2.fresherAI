@@ -6,7 +6,7 @@ function DownloadBtn({ docRef, user, setUser }) {
 
     const handlePdf = useReactToPrint({
         contentRef: docRef,
-        documentTitle: "FresherAIPDF"
+        documentTitle: "GuardianAIPDF"
     })
 
     const handleDownload = async () => {

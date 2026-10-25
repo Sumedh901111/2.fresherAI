@@ -13,12 +13,26 @@ export const startInterview = async (req, res) => {
             role,
             useResume = false,
             resume = {},
+            questionCount = 5,
         } = req.body;
 
         if (!type || !role) {
             return res.status(400).json({
                 success: false,
                 message: "Interview type and role are required",
+            });
+        }
+
+        const parsedCount = Number(questionCount);
+        if (
+            isNaN(parsedCount) ||
+            !Number.isInteger(parsedCount) ||
+            parsedCount < 1 ||
+            parsedCount > 15
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Question count must be an integer between 1 and 15",
             });
         }
 
@@ -35,6 +49,7 @@ export const startInterview = async (req, res) => {
             type,
             useResume,
             resume,
+            questionCount: parsedCount,
         });
 
         const questions = result?.questions;
@@ -86,9 +101,13 @@ export const startInterview = async (req, res) => {
 export const submitAnswer = async (req, res) => {
     try {
         const userId = req.headers["x-user-id"];
-        const { interviewId, answer } = req.body;
+        const { interviewId, answer, finishEarly = false } = req.body;
 
-        if (!interviewId || answer == null || !String(answer).trim()) {
+        const effectiveAnswer =
+            String(answer || "").trim() ||
+            (finishEarly ? "Interview concluded early by candidate." : "");
+
+        if (!interviewId || (!finishEarly && !effectiveAnswer)) {
             return res.status(400).json({
                 success: false,
                 message: "Interview ID and answer are required",
@@ -131,9 +150,10 @@ export const submitAnswer = async (req, res) => {
             });
         }
 
-        currentQuestion.userAnswer = answer;
+        currentQuestion.userAnswer = effectiveAnswer;
 
         const completed =
+            Boolean(finishEarly) ||
             interview.currentQuestion + 1 >= interview.questions.length;
 
         const result = await graph.invoke({

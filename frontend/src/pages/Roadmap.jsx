@@ -9,6 +9,7 @@ import api from '../utils/axios'
 import { useSelector } from 'react-redux'
 import { useEffect } from 'react'
 import RoadmapResult from '../components/roadmap/RoadmapResult'
+import guardianShield from '../assets/brand/guardian-shield-transparent.png'
 const PACKAGE_OPTIONS = ["10 LPA", "15 LPA", "20 LPA", "30 LPA", "40 LPA"];
 function Roadmap({ user, setUser }) {
     const navigate = useNavigate()
@@ -100,8 +101,9 @@ getAllRoadmaps()
                 className='sticky top-0 z-20 border-b border-black/8 bg-white/80 backdrop-blur-xl'>
                 <div className='mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-5'>
                     <div onClick={() => navigate("/dashboard")}
-                        className='flex cursor-pointer items-center gap-1.5'>
-                        <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>FresherAI</span>
+                        className='flex cursor-pointer items-center gap-2'>
+                        <img src={guardianShield} alt="Guardian AI" className='w-5 h-5 object-contain' />
+                        <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>Guardian AI</span>
                         <span className='hidden rounded bg-black/5 px-1.5 py-0.5 text-[10px] text-black/50 sm:block'>Roadmap Builder</span>
                     </div>
 

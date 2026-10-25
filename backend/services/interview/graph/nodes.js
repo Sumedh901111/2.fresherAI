@@ -9,7 +9,8 @@ export async function interviewNode(state) {
         role:state.role,
         type:state.type,
         useResume:state.useResume,
-        resume:state.resume
+        resume:state.resume,
+        questionCount:state.questionCount
 
     })
 

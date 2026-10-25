@@ -2,6 +2,7 @@ const hrInterviewPrompt = ({
   role,
   useResume,
   resume,
+  questionCount = 5,
 }) => `
 
 You are a Senior HR Interviewer with 15+ years of experience.
@@ -49,7 +50,7 @@ ${resume?.recommendations?.join(", ")}
 RULES
 =========================
 
-Generate EXACTLY 6 questions.
+Generate EXACTLY ${questionCount} questions.
 
 Each object must contain ONLY:
 
@@ -98,19 +99,11 @@ personalize questions using:
 - strengths
 - weaknesses
 
-Difficulty Order
-
-Q1 -> easy
-
-Q2 -> easy
-
-Q3 -> medium
-
-Q4 -> medium
-
-Q5 -> hard
-
-Q6 -> hard
+Difficulty Order:
+Progression across the ${questionCount} question(s):
+- Start with easy introductory/warm-up questions
+- Follow with medium situational, communication, and behavioral questions
+- Finish with hard/challenging leadership, conflict-resolution, or pressure-handling questions
 
 =========================
 Timer Rules

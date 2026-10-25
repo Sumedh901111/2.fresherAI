@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setResume } from '../redux/resumeSlice'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from "recharts"
 import { useCoins } from '../apis/user.api'
+import guardianShield from '../assets/brand/guardian-shield-transparent.png'
 const ScoreRing = ({ score }) => {
     const color = score >= 75 ? "#7c3aed" : score >= 50 ? "#f59e0b" : "#ef4444";
     return (
@@ -63,8 +64,9 @@ const Navbar = ({ label }) => {
             className='fixed inset-x-0 top-0 z-20 border-b border-black/8 bg-white/80 backdrop-blur-xl'>
             <div className='mx-auto flex h-12 max-w-7xl items-center justify-start px-3 sm:px-5'>
                 <div onClick={() => navigate("/dashboard")}
-                    className='flex cursor-pointer items-center gap-1.5'>
-                    <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>FresherAI</span>
+                    className='flex cursor-pointer items-center gap-2'>
+                    <img src={guardianShield} alt="Guardian AI" className='w-5 h-5 object-contain' />
+                    <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>Guardian AI</span>
                     <span className='hidden rounded bg-black/5 px-1.5 py-0.5 text-[10px] text-black/50 sm:block'>{label}</span>
                 </div>
 
